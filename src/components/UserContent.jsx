@@ -3,10 +3,17 @@ import Message from "./Message";
 import Context from "../Context";
 
 function UserContent() {
+<<<<<<< HEAD
   const { messages, newmessage, conversationchoose, setMessages } = useContext(Context);
   const [isLoading, setIsLoading] = useState(false);
+=======
+  const { messages, newmessage, conversationchoose, setMessages , targetMessageId}=useContext(Context);
+  const { isLoading2, setIsLoading2 } = useContext(Context);
+>>>>>>> ead7d2b (lastversion)
   const { decode } = useContext(Context);
   const [scrollHeight, setScrollHeight] = useState(0);
+  const { messageRefs, fetchpagination, findAndScrollToMessage, isPrivacy } =
+    useContext(Context);
   // useEffect(
   //   () =>
   //     async function fetchmessage() {
@@ -50,6 +57,7 @@ function UserContent() {
 
   // Gọi API để lấy tin nhắn ban đầu khi component mount
   //fetchMessages();
+<<<<<<< HEAD
   const scrollRef = useRef(null);
   useEffect(() => {
     // Cuộn về cuối khi component được render lần đầu
@@ -89,13 +97,75 @@ function UserContent() {
   console.log(messages);
   // Dọn dẹp kết nối khi component unmount
 
+=======
+  const { scrollRef } = useContext(Context);
+
+  async function fetchPagination() {
+    try {
+      setIsLoading2(true);
+
+      const prevScrollHeight = scrollRef.current.scrollHeight;
+      console.log("data:", conversationchoose, messages.length);
+      const res = await fetch(
+        `https://localhost:7289/api/Conversations/${conversationchoose}/messageswithpagination?skipcount=${messages.length}`,
+          {
+            headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${sessionStorage.getItem("token")}`
+            }
+          }
+      );
+      const data = await res.json();
+      setMessages((nextmessages) => [...data, ...nextmessages]);
+      console.log(data);
+      setTimeout(() => {
+        if (scrollRef.current) {
+          // Điều chỉnh vị trí cuộn để giữ nguyên vị trí cũ
+          scrollRef.current.scrollTop =
+            scrollRef.current.scrollHeight - prevScrollHeight;
+        }
+      }, 0);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading2(false);
+    }
+  }
+
+  function handleScroll() {
+    if (scrollRef.current.scrollTop == 0) {
+      if (scrollRef.current.clientHeight != scrollRef.current.scrollHeight) {
+        fetchPagination();
+      }
+    }
+  }
+
+  useEffect(
+    function () {
+      console.log(messages);
+    },
+    [messages]
+  );
+  console.log('fsafasf',targetMessageId)
+  console.log(messages);
+  // Dọn dẹp kết nối khi component unmount
+>>>>>>> ead7d2b (lastversion)
   return (
     <div
       className="content overflow-auto"
       ref={scrollRef}
       onScroll={handleScroll}
     >
-      {isLoading ? (
+      {isPrivacy ? (
+        <div className="d-flex justify-content-center">
+          <p>
+            Người dùng này không cho phép nhắn tin với người lạ, hãy kết bạn
+          </p>
+        </div>
+      ) : (
+        ""
+      )}
+      {isLoading2 ? (
         <div className="d-flex justify-content-center">
           <div className="spinner-border" role="status">
             <span class="visually-hidden d-flex">Loading...</span>
@@ -104,6 +174,7 @@ function UserContent() {
       ) : (
         ""
       )}
+<<<<<<< HEAD
       {messages.map((mess, index) => (
         <Message
           key={index}
@@ -113,6 +184,40 @@ function UserContent() {
           content={mess.content}
         />
       ))}
+=======
+      {messages.length > 0
+        ? messages.map((mess, index) => {
+            // Kiểm tra xem tin nhắn trước đó có cùng người gửi không
+            const showAvatar =
+              index === 0 || messages[index - 1].senderId !== mess.senderId;
+
+            return (
+              
+              <div
+                key={`${mess.messageId}-${index}`}
+                ref={(el) => {
+                  if (el) messageRefs.current.set(mess.messageId, el);
+                }}
+              >
+                <Message
+                  messageId={mess.messageId}
+                  conversationchoose={conversationchoose}
+                  key={index}
+                  sender={mess.sender}
+                  senderid={mess.senderId}
+                  nameid={decode.nameid}
+                  files={mess.files}
+                  recall={mess.recall}
+                  content={mess.content}
+                  className="fade-in"
+                  showAvatar={showAvatar} // Truyền giá trị này vào component Message
+                  highlight={mess.messageId == targetMessageId ? true : false}
+                />
+              </div>
+            );
+          })
+        : ""}
+>>>>>>> ead7d2b (lastversion)
     </div>
   );
 }
